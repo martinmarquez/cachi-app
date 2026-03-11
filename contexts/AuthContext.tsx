@@ -57,6 +57,14 @@ function getAuthHeaders(): Record<string, string> {
   return headers;
 }
 
+// Get the current origin for callbackURL (required by Better Auth)
+function getCallbackURL(): string {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'https://cachi.app';
+}
+
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   isLoading: true,
@@ -94,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await fetch(`${AUTH_URL}/sign-in/email`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, callbackURL: getCallbackURL() }),
     });
 
     if (!response.ok) {
@@ -122,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await fetch(`${AUTH_URL}/sign-up/email`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, callbackURL: getCallbackURL() }),
     });
 
     if (!response.ok) {
