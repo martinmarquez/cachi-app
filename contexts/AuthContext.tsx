@@ -17,8 +17,13 @@ interface AuthContextValue {
   token: string | null;
 }
 
+// On web (Vercel), proxy through same-origin to avoid CORS / "Invalid origin"
+// On native, call Neon Auth directly with an explicit Origin header
 const AUTH_URL =
-  'https://ep-jolly-glade-akvjb297.neonauth.c-3.us-west-2.aws.neon.tech/neondb/auth';
+  Platform.OS === 'web'
+    ? '/api/auth'
+    : 'https://ep-jolly-glade-akvjb297.neonauth.c-3.us-west-2.aws.neon.tech/neondb/auth';
+
 const TOKEN_KEY = 'cachi_auth_token';
 const USER_KEY = 'cachi_user';
 
