@@ -3,10 +3,6 @@
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [
-    {
-      "source": "/api/auth/:path*",
-      "destination": "https://ep-jolly-glade-akvjb297.neonauth.c-3.us-west-2.aws.neon.tech/neondb/auth/:path*"
-    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
