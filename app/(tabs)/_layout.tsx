@@ -5,7 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   return (
-    <Text style={{ fontSize: focused ? 26 : 22, opacity: focused ? 1 : 0.6 }}>
+    <Text style={{ fontSize: focused ? 22 : 20, opacity: focused ? 1 : 0.6 }}>
       {emoji}
     </Text>
   );
@@ -23,12 +23,12 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: theme.tabBar,
           borderTopColor: theme.tabBarBorder,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 64,
+          paddingBottom: 12,
+          paddingTop: 6,
+          height: 72,
         },
         tabBarLabelStyle: {
-          fontSize: theme.fontSize.xs,
+          fontSize: 11,
           fontWeight: '600',
         },
       }}>
