@@ -17,10 +17,14 @@ module.exports = async (req, res) => {
     });
   }
 
-  // Forward to Neon Auth — omit Origin/Host so it's treated as server-to-server
+  // Forward to Neon Auth with its own origin so Better Auth trusts the request
+  const NEON_ORIGIN = 'https://ep-jolly-glade-akvjb297.neonauth.c-3.us-west-2.aws.neon.tech';
   const upstream = await fetch(targetUrl, {
     method: req.method || 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Origin': NEON_ORIGIN,
+    },
     body,
   });
 
