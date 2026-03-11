@@ -21,6 +21,8 @@ import { TaskCard } from '@/components/TaskCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { DatePicker } from '@/components/DatePicker';
+import { addTaskDateAssignment } from '@/lib/api';
 
 export default function TasksScreen() {
   const { theme, isCalmMode } = useTheme();
@@ -37,6 +39,7 @@ export default function TasksScreen() {
   const [newPriority, setNewPriority] = useState(3);
   const [newMinutes, setNewMinutes] = useState('');
   const [newTime, setNewTime] = useState('');
+  const [selectedDates, setSelectedDates] = useState<string[]>([format(new Date(), 'yyyy-MM-dd')]);
   const [creating, setCreating] = useState(false);
 
   const loadTasks = useCallback(async () => {
@@ -74,22 +77,27 @@ export default function TasksScreen() {
     }
     setCreating(true);
     try {
-      const today = format(new Date(), 'yyyy-MM-dd');
+      const primaryDate = selectedDates.length > 0 ? selectedDates[0] : format(new Date(), 'yyyy-MM-dd');
       const input: TaskInput = {
         title: newTitle.trim(),
         description: newDescription.trim() || undefined,
         category: selectedCategory,
         priority: newPriority,
         estimated_minutes: newMinutes ? parseInt(newMinutes, 10) : undefined,
-        scheduled_date: today,
+        scheduled_date: primaryDate,
         scheduled_time: newTime || undefined,
       };
-      await createTask(user.id, input);
+      const task = await createTask(user.id, input);
+      // Create date assignments for additional dates
+      for (let i = 1; i < selectedDates.length; i++) {
+        await addTaskDateAssignment(task.id, selectedDates[i]);
+      }
       setNewTitle('');
       setNewDescription('');
       setNewPriority(3);
       setNewMinutes('');
       setNewTime('');
+      setSelectedDates([format(new Date(), 'yyyy-MM-dd')]);
       setShowNewTask(false);
       await loadTasks();
     } catch (e: any) {
@@ -97,7 +105,7 @@ export default function TasksScreen() {
     } finally {
       setCreating(false);
     }
-  }, [user, newTitle, newDescription, selectedCategory, newPriority, newMinutes, newTime, loadTasks]);
+  }, [user, newTitle, newDescription, selectedCategory, newPriority, newMinutes, newTime, selectedDates, loadTasks]);
 
   const handleDelete = useCallback(
     async (taskId: string) => {
@@ -290,6 +298,16 @@ export default function TasksScreen() {
                 />
               </View>
             </View>
+
+            <View style={{ height: theme.spacing.md }} />
+
+            {/* Fechas */}
+            <DatePicker
+              selectedDates={selectedDates}
+              onDatesChange={setSelectedDates}
+              multiSelect={true}
+              label="Fechas"
+            />
 
             <View style={{ height: theme.spacing.md }} />
 

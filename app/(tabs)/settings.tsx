@@ -18,6 +18,8 @@ export default function SettingsScreen() {
   const [breakInterval, setBreakInterval] = useState('25');
   const [wakeTime, setWakeTime] = useState('08:00');
   const [sleepTime, setSleepTime] = useState('23:00');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationTime, setNotificationTime] = useState('21:00');
   const [saving, setSaving] = useState(false);
 
   const loadPrefs = useCallback(async () => {
@@ -29,6 +31,8 @@ export default function SettingsScreen() {
         setBreakInterval(String(result.break_interval_minutes));
         setWakeTime(result.wake_time);
         setSleepTime(result.sleep_time);
+        setNotificationsEnabled(result.notifications_enabled ?? true);
+        setNotificationTime(result.notification_time ?? '21:00');
       }
     } catch {
       // silently fail
@@ -48,6 +52,8 @@ export default function SettingsScreen() {
         break_interval_minutes: parseInt(breakInterval, 10) || 25,
         wake_time: wakeTime,
         sleep_time: sleepTime,
+        notifications_enabled: notificationsEnabled,
+        notification_time: notificationTime,
       });
       Alert.alert('', 'Preferencias guardadas');
     } catch (e: any) {
@@ -55,7 +61,7 @@ export default function SettingsScreen() {
     } finally {
       setSaving(false);
     }
-  }, [user, isCalmMode, breakInterval, wakeTime, sleepTime]);
+  }, [user, isCalmMode, breakInterval, wakeTime, sleepTime, notificationsEnabled, notificationTime]);
 
   const handleSignOut = useCallback(() => {
     Alert.alert('Cerrar sesion', 'Estas seguro?', [
@@ -174,6 +180,49 @@ export default function SettingsScreen() {
                 />
               </View>
             </View>
+          </Card>
+        </Animated.View>
+
+        {/* Notifications */}
+        <Animated.View
+          entering={FadeInDown.delay(350).duration(theme.animationDuration)}
+          style={{ marginTop: theme.spacing.lg }}>
+          <Card>
+            <View style={styles.settingRow}>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: theme.fontSize.base,
+                    fontWeight: '600',
+                    color: theme.text,
+                  }}>
+                  🔔 Recordatorio de manana
+                </Text>
+                <Text
+                  style={{
+                    fontSize: theme.fontSize.sm,
+                    color: theme.textSecondary,
+                    marginTop: 2,
+                  }}>
+                  Te avisa la noche anterior sobre las tareas del dia siguiente
+                </Text>
+              </View>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={setNotificationsEnabled}
+                trackColor={{ true: theme.primary }}
+              />
+            </View>
+            {notificationsEnabled && (
+              <View style={{ marginTop: theme.spacing.md }}>
+                <Input
+                  label="Hora del recordatorio"
+                  value={notificationTime}
+                  onChangeText={setNotificationTime}
+                  placeholder="21:00"
+                />
+              </View>
+            )}
           </Card>
         </Animated.View>
 

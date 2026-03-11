@@ -19,8 +19,12 @@ import {
   toggleStep,
   addTaskStep,
   deleteTask,
+  getTaskDateAssignments,
+  addTaskDateAssignment,
+  removeTaskDateAssignment,
 } from '@/lib/api';
-import { Task, TaskStep } from '@/types';
+import { Task, TaskStep, TaskDateAssignment } from '@/types';
+import MultiDateSelector from '@/components/MultiDateSelector';
 import { CategoryBadge } from '@/components/ui/CategoryBadge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -36,6 +40,7 @@ export default function TaskDetailScreen() {
 
   const [task, setTask] = useState<Task | null>(null);
   const [steps, setSteps] = useState<TaskStep[]>([]);
+  const [dateAssignments, setDateAssignments] = useState<TaskDateAssignment[]>([]);
   const [overwhelmMode, setOverwhelmMode] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const [showAddStep, setShowAddStep] = useState(false);
@@ -45,12 +50,14 @@ export default function TaskDetailScreen() {
   const loadData = useCallback(async () => {
     if (!id) return;
     try {
-      const [taskData, stepsData] = await Promise.all([
+      const [taskData, stepsData, assignments] = await Promise.all([
         getTask(id),
         getTaskSteps(id),
+        getTaskDateAssignments(id),
       ]);
       setTask(taskData);
       setSteps(stepsData);
+      setDateAssignments(assignments);
     } catch {
       // silently fail
     }
@@ -89,6 +96,23 @@ export default function TaskDetailScreen() {
     setShowAddStep(false);
     await loadData();
   }, [id, newStepTitle, newStepMinutes, steps.length, loadData]);
+
+  const handleAddDate = useCallback(
+    async (date: string) => {
+      if (!id) return;
+      await addTaskDateAssignment(id, date);
+      await loadData();
+    },
+    [id, loadData]
+  );
+
+  const handleRemoveDate = useCallback(
+    async (assignmentId: string) => {
+      await removeTaskDateAssignment(assignmentId);
+      await loadData();
+    },
+    [loadData]
+  );
 
   const handleDelete = useCallback(async () => {
     if (!id) return;
@@ -187,6 +211,19 @@ export default function TaskDetailScreen() {
             </Text>
           </View>
         </Animated.View>
+
+        {/* Date assignments */}
+        {!overwhelmMode && (
+          <Animated.View
+            entering={FadeInDown.delay(80).duration(theme.animationDuration)}
+            style={{ marginTop: theme.spacing.lg }}>
+            <MultiDateSelector
+              dates={dateAssignments.map((a) => ({ id: a.id, date: a.assigned_date }))}
+              onAdd={handleAddDate}
+              onRemove={handleRemoveDate}
+            />
+          </Animated.View>
+        )}
 
         {/* Actions */}
         <Animated.View

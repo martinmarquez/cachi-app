@@ -7,6 +7,9 @@ import {
   MoodEntry,
   UserPreferences,
   PriorResource,
+  TaskDateAssignment,
+  DayTaskSummary,
+  Category,
 } from '@/types';
 
 const DATABASE_URL =
@@ -188,7 +191,7 @@ export async function upsertPreferences(
   prefs: Partial<Omit<UserPreferences, 'id' | 'user_id'>>
 ): Promise<UserPreferences> {
   const rows = await sql`
-    INSERT INTO user_preferences (user_id, calm_mode, overwhelm_mode, break_interval_minutes, notification_style, wake_time, sleep_time)
+    INSERT INTO user_preferences (user_id, calm_mode, overwhelm_mode, break_interval_minutes, notification_style, wake_time, sleep_time, notifications_enabled, notification_time)
     VALUES (
       ${userId},
       ${prefs.calm_mode ?? false},
@@ -196,7 +199,9 @@ export async function upsertPreferences(
       ${prefs.break_interval_minutes ?? 25},
       ${prefs.notification_style ?? 'gentle'},
       ${prefs.wake_time ?? '08:00'},
-      ${prefs.sleep_time ?? '23:00'}
+      ${prefs.sleep_time ?? '23:00'},
+      ${prefs.notifications_enabled ?? true},
+      ${prefs.notification_time ?? '21:00'}
     )
     ON CONFLICT (user_id) DO UPDATE SET
       calm_mode = COALESCE(${prefs.calm_mode ?? null}, user_preferences.calm_mode),
@@ -204,10 +209,101 @@ export async function upsertPreferences(
       break_interval_minutes = COALESCE(${prefs.break_interval_minutes ?? null}, user_preferences.break_interval_minutes),
       notification_style = COALESCE(${prefs.notification_style ?? null}, user_preferences.notification_style),
       wake_time = COALESCE(${prefs.wake_time ?? null}, user_preferences.wake_time),
-      sleep_time = COALESCE(${prefs.sleep_time ?? null}, user_preferences.sleep_time)
+      sleep_time = COALESCE(${prefs.sleep_time ?? null}, user_preferences.sleep_time),
+      notifications_enabled = COALESCE(${prefs.notifications_enabled ?? null}, user_preferences.notifications_enabled),
+      notification_time = COALESCE(${prefs.notification_time ?? null}, user_preferences.notification_time)
     RETURNING *
   `;
   return rows[0] as UserPreferences;
+}
+
+// =================== DATE ASSIGNMENTS ===================
+
+export async function getTasksForDate(
+  userId: string,
+  date: string
+): Promise<Task[]> {
+  const rows = await sql`
+    SELECT DISTINCT t.* FROM tasks t
+    LEFT JOIN task_date_assignments tda ON tda.task_id = t.id AND tda.step_id IS NULL
+    WHERE t.user_id = ${userId}
+      AND (t.scheduled_date = ${date} OR tda.assigned_date = ${date})
+    ORDER BY t.scheduled_time ASC NULLS LAST, t.priority DESC, t.created_at ASC
+  `;
+  return rows as Task[];
+}
+
+export async function getTaskSummaryForRange(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<DayTaskSummary[]> {
+  const rows = await sql`
+    SELECT d.date, COUNT(DISTINCT d.task_id)::int AS count,
+           ARRAY_AGG(DISTINCT d.category) AS categories
+    FROM (
+      SELECT t.id AS task_id, t.scheduled_date AS date, t.category
+      FROM tasks t
+      WHERE t.user_id = ${userId}
+        AND t.scheduled_date BETWEEN ${startDate} AND ${endDate}
+      UNION
+      SELECT t.id AS task_id, tda.assigned_date AS date, t.category
+      FROM task_date_assignments tda
+      JOIN tasks t ON t.id = tda.task_id
+      WHERE t.user_id = ${userId}
+        AND tda.step_id IS NULL
+        AND tda.assigned_date BETWEEN ${startDate} AND ${endDate}
+    ) d
+    GROUP BY d.date
+    ORDER BY d.date ASC
+  `;
+  return rows as DayTaskSummary[];
+}
+
+export async function addTaskDateAssignment(
+  taskId: string,
+  date: string,
+  stepId?: string,
+  time?: string
+): Promise<TaskDateAssignment> {
+  const rows = await sql`
+    INSERT INTO task_date_assignments (task_id, step_id, assigned_date, assigned_time)
+    VALUES (${taskId}, ${stepId ?? null}, ${date}, ${time ?? null})
+    ON CONFLICT (task_id, step_id, assigned_date) DO NOTHING
+    RETURNING *
+  `;
+  return rows[0] as TaskDateAssignment;
+}
+
+export async function removeTaskDateAssignment(
+  assignmentId: string
+): Promise<void> {
+  await sql`DELETE FROM task_date_assignments WHERE id = ${assignmentId}`;
+}
+
+export async function getTaskDateAssignments(
+  taskId: string
+): Promise<TaskDateAssignment[]> {
+  const rows = await sql`
+    SELECT * FROM task_date_assignments
+    WHERE task_id = ${taskId}
+    ORDER BY assigned_date ASC
+  `;
+  return rows as TaskDateAssignment[];
+}
+
+export async function getTomorrowTasks(
+  userId: string
+): Promise<Task[]> {
+  const rows = await sql`
+    SELECT DISTINCT t.* FROM tasks t
+    LEFT JOIN task_date_assignments tda ON tda.task_id = t.id AND tda.step_id IS NULL
+    WHERE t.user_id = ${userId}
+      AND t.completed = false
+      AND (t.scheduled_date = CURRENT_DATE + 1 OR tda.assigned_date = CURRENT_DATE + 1)
+    ORDER BY t.scheduled_time ASC NULLS LAST, t.priority DESC
+  `;
+  return rows as Task[];
 }
 
 // =================== PRIOR RESOURCES ===================

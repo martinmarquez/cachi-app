@@ -62,6 +62,25 @@ export interface UserPreferences {
   notification_style: NotificationStyle;
   wake_time: string; // HH:MM
   sleep_time: string; // HH:MM
+  notifications_enabled: boolean;
+  notification_time: string; // HH:MM
+}
+
+export interface TaskDateAssignment {
+  id: string;
+  task_id: string;
+  step_id: string | null;
+  assigned_date: string; // YYYY-MM-DD
+  assigned_time: string | null; // HH:MM
+  completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface DayTaskSummary {
+  date: string; // YYYY-MM-DD
+  count: number;
+  categories: Category[];
 }
 
 // Para crear/editar tareas
@@ -75,6 +94,7 @@ export interface TaskInput {
   scheduled_time?: string;
   is_recurring?: boolean;
   recurrence_pattern?: RecurrencePattern;
+  assigned_dates?: string[]; // YYYY-MM-DD array for multi-day
 }
 
 export interface TaskStepInput {

@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -15,6 +16,7 @@ function RootLayoutNav() {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  useNotifications();
 
   useEffect(() => {
     if (isLoading) return;

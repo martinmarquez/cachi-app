@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { getTasks, toggleTask, getTodayMood } from '@/lib/api';
+import { getTasksForDate, toggleTask, getTodayMood } from '@/lib/api';
 import { Task, MoodEntry } from '@/types';
 import { TaskCard } from '@/components/TaskCard';
 import { Card } from '@/components/ui/Card';
@@ -51,7 +51,7 @@ export default function TuDiaScreen() {
     if (!user) return;
     try {
       const [todayTasks, todayMood] = await Promise.all([
-        getTasks(user.id, today),
+        getTasksForDate(user.id, today),
         getTodayMood(user.id),
       ]);
       setTasks(todayTasks);
