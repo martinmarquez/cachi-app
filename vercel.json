@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/auth/[...path].ts",
+      "src": "api/auth-proxy.ts",
       "use": "@vercel/node"
     },
     {
@@ -12,7 +12,7 @@
     }
   ],
   "routes": [
-    { "src": "/api/auth/(.*)", "dest": "/api/auth/[...path].ts" },
+    { "src": "/api/auth/(.*)", "dest": "/api/auth-proxy?path=$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
