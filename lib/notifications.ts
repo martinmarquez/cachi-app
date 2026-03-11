@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { Task, NotificationStyle } from '@/types';
+import { toTimeStr } from '@/lib/dateUtils';
 
 // Configure how notifications display when app is in foreground
 Notifications.setNotificationHandler({
@@ -40,7 +41,8 @@ export async function scheduleNextDayNotification(
 
   if (style === 'off' || tasks.length === 0) return;
 
-  const [hours, minutes] = notificationTime.split(':').map(Number);
+  const timeStr = toTimeStr(notificationTime);
+  const [hours, minutes] = timeStr.split(':').map(Number);
 
   let title: string;
   let body: string;

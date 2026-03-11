@@ -198,7 +198,7 @@ export default function TaskDetailScreen() {
                   fontSize: theme.fontSize.sm,
                   marginLeft: theme.spacing.md,
                 }}>
-                {task.scheduled_time.slice(0, 5)}
+                {typeof task.scheduled_time === 'string' ? task.scheduled_time.slice(0, 5) : ''}
               </Text>
             )}
             <Text

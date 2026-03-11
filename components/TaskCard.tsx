@@ -88,7 +88,7 @@ export function TaskCard({ task, onToggle, highlight = false }: TaskCardProps) {
                     fontSize: theme.fontSize.xs,
                     marginLeft: 8,
                   }}>
-                  {task.scheduled_time.slice(0, 5)}
+                  {typeof task.scheduled_time === 'string' ? task.scheduled_time.slice(0, 5) : ''}
                 </Text>
               )}
             </View>

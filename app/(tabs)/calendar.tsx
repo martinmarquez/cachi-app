@@ -12,6 +12,7 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
+import { toDateStr } from '@/lib/dateUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import { getTasksForDate, getTaskSummaryForRange, toggleTask } from '@/lib/api';
 import { Task, Category } from '@/types';
@@ -49,7 +50,9 @@ export default function CalendarScreen() {
       const summaries = await getTaskSummaryForRange(user.id, start, end);
       const dots: Record<string, { categories: Category[]; count: number }> = {};
       for (const s of summaries) {
-        dots[s.date] = { categories: s.categories, count: s.count };
+        // Normalize date key — neon driver may return Date objects
+        const key = toDateStr(s.date);
+        dots[key] = { categories: s.categories, count: s.count };
       }
       setTaskDots(dots);
     } catch {

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme } from '@/contexts/ThemeContext';
+import { toDate } from '@/lib/dateUtils';
 import CalendarGrid from '@/components/CalendarGrid';
 
 interface DatePickerProps {
@@ -30,11 +31,11 @@ export function DatePicker({
     }
 
     if (!multiSelect) {
-      return format(parseISO(selectedDates[0]), "EEE d 'de' MMMM", { locale: es });
+      return format(toDate(selectedDates[0]), "EEE d 'de' MMMM", { locale: es });
     }
 
     if (selectedDates.length === 1) {
-      return format(parseISO(selectedDates[0]), "EEE d 'de' MMMM", { locale: es });
+      return format(toDate(selectedDates[0]), "EEE d 'de' MMMM", { locale: es });
     }
 
     return `${selectedDates.length} fechas seleccionadas`;
@@ -168,7 +169,7 @@ export function DatePicker({
                         color: theme.primary,
                         fontSize: theme.fontSize.xs,
                       }}>
-                      {format(parseISO(date), 'd MMM', { locale: es })}
+                      {format(toDate(date), 'd MMM', { locale: es })}
                     </Text>
                     <TouchableOpacity
                       onPress={() =>

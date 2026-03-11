@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme } from '@/contexts/ThemeContext';
+import { toDate } from '@/lib/dateUtils';
 import { DatePicker } from '@/components/DatePicker';
 
 interface MultiDateSelectorProps {
@@ -45,7 +46,7 @@ export default function MultiDateSelector({
       {/* Chips row */}
       <View style={styles.chipsContainer}>
         {dates.map((item) => {
-          const parsed = parseISO(item.date);
+          const parsed = toDate(item.date);
           const label = format(parsed, "d MMM", { locale: es });
           return (
             <View
